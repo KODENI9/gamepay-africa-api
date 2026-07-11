@@ -1,0 +1,32 @@
+{
+  "compilerOptions": {
+    /* Langage & Module */
+    "target": "ES2022",
+    "module": "nodenext",
+    "lib": ["ES2022"],
+    "moduleResolution": "nodenext",
+    "resolveJsonModule": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+
+    /* Emission */
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "sourceMap": true,
+
+    /* Strictness (convention du SAD) */
+    "strict": true,
+    "noImplicitAny": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+
+    /* Interop / divers */
+    "skipLibCheck": true,
+    "allowJs": false,
+    "isolatedModules": true
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "tests"]
+}

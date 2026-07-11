@@ -1,0 +1,71 @@
+services:
+  - type: web
+    name: gamepay-africa-api
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PUBLIC_BASE_URL
+        value: https://REMPLACER-APRES-PREMIER-DEPLOI.onrender.com
+      - key: FRONTEND_BASE_URL
+        value: https://gamepay-africa.vercel.app
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: MONEYFUSION_API_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: gamepay-africa-redis
+          property: connectionString
+
+  - type: worker
+    name: gamepay-africa-worker
+    runtime: node
+    plan: starter
+    region: oregon
+    buildCommand: npm install && npm run build
+    startCommand: npm run start:worker
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PUBLIC_BASE_URL
+        value: https://REMPLACER-APRES-PREMIER-DEPLOI.onrender.com
+      - key: FRONTEND_BASE_URL
+        value: https://gamepay-africa.vercel.app
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: FIREBASE_PROJECT_ID
+        sync: false
+      - key: FIREBASE_CLIENT_EMAIL
+        sync: false
+      - key: FIREBASE_PRIVATE_KEY
+        sync: false
+      - key: MONEYFUSION_API_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: gamepay-africa-redis
+          property: connectionString
+
+  - type: keyvalue
+    name: gamepay-africa-redis
+    plan: starter
+    region: oregon
+    ipAllowList: []
