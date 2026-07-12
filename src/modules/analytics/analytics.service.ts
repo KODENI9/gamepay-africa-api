@@ -22,21 +22,35 @@ export interface AnalyticsSummary {
   totalRevenue: number;
   totalOrders: number;
   totalDiamondsSold: number;
+  revenueChangePct: number | null;
+  ordersChangePct: number | null;
   revenueByDay: DayRevenue[];
   revenueByGame: GameRevenue[];
 }
 
+function pctChange(current: number, previous: number): number | null {
+  if (previous === 0) return current > 0 ? 100 : null;
+  return ((current - previous) / previous) * 100;
+}
+
 export const analyticsService = {
   async getSummary(days: number): Promise<AnalyticsSummary> {
-    const since = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+    const now = Date.now();
+    const since = new Date(now - days * 24 * 60 * 60 * 1000);
+    const previousSince = new Date(now - days * 2 * 24 * 60 * 60 * 1000);
 
-    const snapshot = await db
-      .collection("orders")
-      .where("status", "==", "delivered")
-      .where("updatedAt", ">=", since)
-      .get();
+    const [currentSnapshot, previousSnapshot] = await Promise.all([
+      db.collection("orders").where("status", "==", "delivered").where("updatedAt", ">=", since).get(),
+      db
+        .collection("orders")
+        .where("status", "==", "delivered")
+        .where("updatedAt", ">=", previousSince)
+        .where("updatedAt", "<", since)
+        .get(),
+    ]);
 
-    const orders = snapshot.docs.map((doc) => doc.data() as Order);
+    const orders = currentSnapshot.docs.map((doc) => doc.data() as Order);
+    const previousOrders = previousSnapshot.docs.map((doc) => doc.data() as Order);
 
     const [games, products] = await Promise.all([
       gamesRepository.findAll(false),
@@ -78,11 +92,15 @@ export const analyticsService = {
       byGame.set(order.gameId, game);
     }
 
+    const previousRevenue = previousOrders.reduce((sum, o) => sum + o.price, 0);
+
     return {
       periodDays: days,
       totalRevenue,
       totalOrders: orders.length,
       totalDiamondsSold,
+      revenueChangePct: pctChange(totalRevenue, previousRevenue),
+      ordersChangePct: pctChange(orders.length, previousOrders.length),
       revenueByDay: Array.from(byDay.values()).sort((a, b) => a.date.localeCompare(b.date)),
       revenueByGame: Array.from(byGame.values()).sort((a, b) => b.revenue - a.revenue),
     };
