@@ -48,13 +48,15 @@ export const moneyFusionClient = {
       },
       { headers: { "Content-Type": "application/json" } }
     );
+    console.log("MoneyFusion initiatePayment response:", response.data);
     return response.data;
   },
 
   async checkPaymentStatus(token: string): Promise<CheckStatusResult> {
     const response = await axios.get<CheckStatusResult>(
-      `https://www.pay.moneyfusion.net/paiementNotif/${token}`
+      `https://pay.moneyfusion.net/paiementNotif/${token}`
     );
+    console.log("MoneyFusion checkPaymentStatus response:", response.data);
     return response.data;
   },
 };
