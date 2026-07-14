@@ -10,6 +10,7 @@ import {
 export const deliveryWorker = new Worker(
   DELIVERY_QUEUE_NAME,
   async (job: Job<DeliveryJobData>) => {
+    logger.info(`▶️ Worker : traitement du job démarré pour la commande ${job.data.orderId}`);
     await deliveryEngine.processOrder(job.data.orderId);
   },
   { connection: redisConnection }

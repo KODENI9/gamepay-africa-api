@@ -74,17 +74,24 @@ export const paymentsService = {
     const realStatus = verification.data.statut;
 
     if (realStatus === "paid") {
-      await paymentsRepository.updateStatus(payment.id, "paid", {
-        externalTransactionId: verification.data.numeroTransaction,
-        rawWebhookPayload: webhookPayload,
-      });
-      await ordersService.transitionStatus(payment.orderId, "paid");
-    } else if (realStatus === "failure" || realStatus === "no paid") {
-      await paymentsRepository.updateStatus(payment.id, "failed", {
-        rawWebhookPayload: webhookPayload,
-      });
-      await ordersService.transitionStatus(payment.orderId, "failed");
-      await enqueueDelivery(payment.orderId);
-    }
+  await paymentsRepository.updateStatus(payment.id, "paid", {
+    externalTransactionId: verification.data.numeroTransaction,
+    rawWebhookPayload: webhookPayload,
+  });
+
+  await ordersService.transitionStatus(payment.orderId, "paid");
+
+  await enqueueDelivery(payment.orderId);
+  
+  logger.info("Job ajouté à la queue Delivery", {
+  orderId: payment.orderId,
+});
+} else if (realStatus === "failure" || realStatus === "no paid") {
+  await paymentsRepository.updateStatus(payment.id, "failed", {
+    rawWebhookPayload: webhookPayload,
+  });
+
+  await ordersService.transitionStatus(payment.orderId, "failed");
+}
   },
 };
