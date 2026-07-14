@@ -15,6 +15,14 @@ export const deliveryWorker = new Worker(
   { connection: redisConnection }
 );
 
+deliveryWorker.on("ready", () => {
+  logger.info("✅ Worker BullMQ prêt et connecté à Redis (queue: delivery)");
+});
+
+deliveryWorker.on("error", (err) => {
+  logger.error("❌ Erreur de connexion du worker BullMQ", { error: err.message });
+});
+
 deliveryWorker.on("completed", (job) => {
   logger.info("Job de livraison terminé", { jobId: job.id, orderId: job.data.orderId });
 });
