@@ -25,6 +25,15 @@ export const productsController = {
     }
   },
 
+  async getServerList(req: Request, res: Response, next: NextFunction) {
+      try {
+        const servers = await productsService.getServerListForProduct(getParam(req, "id"));
+        res.json({ data: servers });
+      } catch (err) {
+        next(err);
+      }
+  },
+
   async create(req: Request, res: Response, next: NextFunction) {
     try {
       const parsed = createProductSchema.safeParse(req.body);

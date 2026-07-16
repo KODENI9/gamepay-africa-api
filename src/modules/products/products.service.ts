@@ -1,4 +1,5 @@
 import { AppError } from "../../shared/errors/AppError";
+import { moogoldClient } from "../delivery/providers/moogold.client";
 import { gamesRepository } from "../games/games.repository";
 import { productsRepository } from "./products.repository";
 import type { Product } from "./products.types";
@@ -20,6 +21,20 @@ export const productsService = {
     const product = await productsRepository.findById(id);
     if (!product) throw AppError.notFound("Produit introuvable");
     return product;
+  },
+
+  async getServerListForProduct(id: string): Promise<Record<string, string>> {
+    const product = await productsRepository.findById(id);
+    if (!product) throw AppError.notFound("Produit introuvable");
+
+    const moogoldId = product.providerMapping?.moogold;
+    if (!moogoldId) return {};
+
+    try {
+      return await moogoldClient.getServerList(Number(moogoldId));
+    } catch {
+      return {};
+    }
   },
 
   async createProduct(input: CreateProductDTO): Promise<Product> {

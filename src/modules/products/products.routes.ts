@@ -7,7 +7,7 @@ export const productsRouter = Router();
 // Routes publiques — ?gameId=xxx pour filtrer les produits d'un jeu donné
 productsRouter.get("/", productsController.list);
 productsRouter.get("/:id", productsController.getById);
-
+productsRouter.get("/:id/servers", productsController.getServerList);
 // Routes protégées
 productsRouter.post("/", requireAdmin, productsController.create);
 productsRouter.patch("/:id", requireAdmin, productsController.update);
