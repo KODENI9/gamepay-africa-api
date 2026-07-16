@@ -17,14 +17,16 @@ const envSchema = z.object({
   REDIS_URL: z.string().min(1, "REDIS_URL est requis"),
 
   PUBLIC_BASE_URL: z.string().url("PUBLIC_BASE_URL doit être une URL valide"),
-  
   FRONTEND_BASE_URL: z.string().url("FRONTEND_BASE_URL doit être une URL valide"),
-
   MONEYFUSION_API_URL: z.string().url("MONEYFUSION_API_URL doit être une URL valide"),
+
+  // MooGold — fournisseur de recharges (optionnel : tant que ces variables
+  // sont vides, le sélecteur de livraison ignore ce fournisseur et retombe
+  // sur "manual". Voir doc.moogold.com pour obtenir un Partner ID/Secret Key.
+  MOOGOLD_PARTNER_ID: z.string().optional().default(""),
+  MOOGOLD_SECRET_KEY: z.string().optional().default(""),
 });
 
-// En développement, on tolère des valeurs manquantes pour ne pas bloquer
-// le démarrage avant que tous les comptes externes soient branchés.
 const parsed = envSchema.safeParse(process.env);
 
 let resolvedEnv: z.infer<typeof envSchema>;
@@ -41,15 +43,10 @@ if (parsed.success) {
     throw new Error(`Configuration invalide :\n${message}`);
   }
 
-  // eslint-disable-next-line no-console
   console.warn(
     `⚠️  Variables d'environnement manquantes ou invalides (mode dev, on continue avec des valeurs vides) :\n${message}`
   );
 
-  // Fallback explicite, sans repasser par Zod (qui rejetterait à nouveau les
-  // chaînes vides) : chaque champ manquant devient une chaîne vide plutôt
-  // que de crasher. Les modules qui en dépendent (Firebase, Clerk...)
-  // échoueront à l'usage avec une erreur claire, mais le serveur démarre.
   resolvedEnv = {
     NODE_ENV: (process.env.NODE_ENV as "development" | "production" | "test") || "development",
     PORT: Number(process.env.PORT) || 4000,
@@ -62,6 +59,8 @@ if (parsed.success) {
     PUBLIC_BASE_URL: process.env.PUBLIC_BASE_URL || "http://localhost:4000",
     FRONTEND_BASE_URL: process.env.FRONTEND_BASE_URL || "http://localhost:5173",
     MONEYFUSION_API_URL: process.env.MONEYFUSION_API_URL ?? "",
+    MOOGOLD_PARTNER_ID: process.env.MOOGOLD_PARTNER_ID ?? "",
+    MOOGOLD_SECRET_KEY: process.env.MOOGOLD_SECRET_KEY ?? "",
   };
 }
 

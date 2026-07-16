@@ -4,7 +4,7 @@ export type OrderStatus = "pending" | "paid" | "processing" | "delivered" | "fai
 
 export interface DeliveryAttempt {
   provider: string;
-  status: "success" | "failed";
+  status: "success" | "failed" | "pending";
   timestamp: Timestamp;
   response: unknown;
 }
@@ -20,6 +20,7 @@ export interface Order {
   price: number;
   currency: string;
   paymentId: string | null;
+  providerOrderId: string | null;
   deliveryAttempts: DeliveryAttempt[];
   createdAt: Timestamp;
   updatedAt: Timestamp;

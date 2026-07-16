@@ -1,4 +1,4 @@
-import { FieldValue, type DocumentSnapshot ,type Query   } from "firebase-admin/firestore";
+import { FieldValue, type DocumentSnapshot, type Query } from "firebase-admin/firestore";
 import { db } from "../../config/firebase";
 import type { CreateOrderInput, Order, OrderStatus } from "./orders.types";
 
@@ -9,15 +9,14 @@ function toOrder(doc: DocumentSnapshot): Order {
 }
 
 export const ordersRepository = {
-
-    async findAll(filters: { status?: OrderStatus } = {}): Promise<Order[]> {
-        let query: Query = db.collection(COLLECTION);
-        if (filters.status) {
-        query = query.where("status", "==", filters.status);
-        }
-        const snapshot = await query.orderBy("createdAt", "desc").limit(200).get();
-        return snapshot.docs.map(toOrder);
-    },
+  async findAll(filters: { status?: OrderStatus } = {}): Promise<Order[]> {
+    let query: Query = db.collection(COLLECTION);
+    if (filters.status) {
+      query = query.where("status", "==", filters.status);
+    }
+    const snapshot = await query.orderBy("createdAt", "desc").limit(200).get();
+    return snapshot.docs.map(toOrder);
+  },
 
   async findAllByUser(userId: string): Promise<Order[]> {
     const snapshot = await db
@@ -40,12 +39,29 @@ export const ordersRepository = {
       ...input,
       status: "pending" as OrderStatus,
       paymentId: null,
+      providerOrderId: null,
       deliveryAttempts: [],
       createdAt: now,
       updatedAt: now,
     });
     const created = await ref.get();
     return toOrder(created);
+  },
+
+  async findByProviderOrderId(providerOrderId: string): Promise<Order | null> {
+    const snapshot = await db
+      .collection(COLLECTION)
+      .where("providerOrderId", "==", providerOrderId)
+      .limit(1)
+      .get();
+    return snapshot.empty ? null : toOrder(snapshot.docs[0]);
+  },
+
+  async setProviderOrderId(id: string, providerOrderId: string): Promise<void> {
+    await db.collection(COLLECTION).doc(id).update({
+      providerOrderId,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
   },
 
   async updateStatus(id: string, status: OrderStatus): Promise<Order | null> {
@@ -67,7 +83,7 @@ export const ordersRepository = {
 
   async addDeliveryAttempt(
     id: string,
-    attempt: { provider: string; status: "success" | "failed"; response: unknown }
+    attempt: { provider: string; status: "success" | "failed" | "pending"; response: unknown }
   ): Promise<void> {
     await db
       .collection(COLLECTION)

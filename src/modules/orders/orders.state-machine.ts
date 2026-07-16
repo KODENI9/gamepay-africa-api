@@ -4,7 +4,7 @@ import type { OrderStatus } from "./orders.types";
 const ALLOWED_TRANSITIONS: Record<OrderStatus, OrderStatus[]> = {
   pending: ["paid", "failed"],
   paid: ["processing", "refunded"],
-  processing: ["delivered", "failed"],
+  processing: ["delivered", "failed", "refunded"],
   delivered: [],
   failed: ["refunded", "processing"],
   refunded: [],
